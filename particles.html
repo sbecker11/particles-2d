@@ -1,0 +1,115 @@
+<!-- from https://www.youtube.com/watch?v=XGioNBHrFU4 by Frank Dvorak 2022 -->
+
+<!DOCTYPE html>
+
+<head>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            overflow: hidden;
+            background-color: black;
+        }
+
+        canvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+        }
+    </style>
+
+</head>
+
+<body>
+    <canvas id="canvas1"></canvas>
+    <script>
+        const canvas = document.getElementById("canvas1");
+        const ctx = canvas.getContext("2d");
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;;
+        let particleArray = [];
+
+        const mouse = {
+            x: null,
+            y: null,
+            radius: 150
+        }
+
+        window.addEventListener("mousemove", function (event) {
+            mouse.x = event.x;
+            mouse.y = event.y;
+            // const time = (new Date()).getTime();
+            // console.log(`${mouse.x} ${mouse.y} ${time}`);
+        });
+
+        class Particle {
+            constructor(x,y) {
+                this.x = x;
+                this.y = y;
+                this.baseX = this.x;
+                this.baseY = this.y;
+                this.density = (Math.random() * 50) + 5;
+                this.maxDensity = 50 + 5;
+                this.size = Math.floor(this.density/10);
+            }
+
+            draw() {
+                ctx.fillStyle = 'red';
+                ctx.beginPath();
+                ctx.arc( this.x, this.y, this.size, 0, Math.PI * 2);
+                ctx.closePath();
+                ctx.fill();
+            }
+            update() {
+                let dx = mouse.x - this.x;
+                let dy = mouse.y - this.y;
+                let distance = Math.sqrt(dx*dx + dy*dy);
+                let forceX = dx / distance;
+                let forceY = dy / distance;
+                let maxDistance = mouse.radius;
+                let force = -0.1 * (maxDistance - distance)/maxDistance;
+                let invDensity = 30 + this.maxDensity-this.density
+                if ( distance < mouse.radius ) {
+                    this.x += forceX * force * invDensity;
+                    this.y += forceY * force * invDensity;
+                } else {
+                    if( this.x !== this.baseX ) {
+                        let dx = this.x - this.baseX;
+                        this.x -= dx/10;
+                    }
+                    if( this.y !== this.baseY ) {
+                        let dy = this.y - this.baseY;
+                        this.y -= dy/10;
+                    }
+                }
+            }
+        }
+        function init() {
+            particleArray = [];
+            for ( let i=0; i<10000; i++) {
+                let x = Math.random() * canvas.width;
+                let y = Math.random() * canvas.width;
+                particleArray.push(new Particle(x,y));
+            }
+        }
+        init();
+        console.log("#particles:", particleArray.length);
+
+        function animate() {
+            ctx.clearRect(0,0, canvas.width, canvas.height);
+            for ( let i=0; i<particleArray.length; i++ ) {
+                const particle = particleArray[i];
+                particle.draw();
+                particle.update();
+            }
+            requestAnimationFrame(animate);
+        }
+        animate();
+    </script>
+</body>
+
+</html>
